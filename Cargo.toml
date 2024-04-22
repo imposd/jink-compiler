@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 clippy = "0.0.302"
 rustc-hash = "1.1.0"
+thiserror = "1.0.59"
 
 [cargo-clippy]
 disallowed-types = ["std::collections::HashMap", "std::collections::HashSet"]

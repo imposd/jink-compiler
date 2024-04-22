@@ -7,20 +7,20 @@ pub enum OpCodeError {
 #[derive(Debug, Copy, Clone, PartialEq)]
 #[repr(u8)]
 pub enum OpCode {
-  OpReturn = 0,
-  OpConstant,
+  OpConstant = 0,
+  OpReturn,
 }
 
 #[derive(Debug)]
 pub enum OpCodeDefinition<'operand> {
-  OpReturn,
   OpConstant(&'operand [usize]),
+  OpReturn,
 }
 
 impl OpCode {
   pub fn from_byte(byte: u8) -> Option<OpCode> {
     match byte {
-      0 => Some(OpCode::OpReturn),
+      0 => Some(OpCode::OpConstant),
       _ => None,
     }
   }
@@ -33,8 +33,8 @@ impl OpCode {
 impl<'operand> OpCodeDefinition<'operand> {
   pub fn lookup(opcode: &OpCode) -> OpCodeDefinition<'operand> {
     match opcode {
-      OpCode::OpReturn => Self::OpReturn,
       OpCode::OpConstant => Self::OpConstant(&[2]),
+      OpCode::OpReturn => Self::OpReturn,
     }
   }
 
@@ -48,8 +48,8 @@ impl TryFrom<u8> for OpCode {
 
   fn try_from(op_code: u8) -> Result<Self, Self::Error> {
     match op_code {
-      0 => Ok(Self::OpReturn),
-      1 => Ok(Self::OpConstant),
+      0 => Ok(Self::OpConstant),
+      1 => Ok(Self::OpReturn),
       _ => Err(OpCodeError::UnknownOpcode(op_code)),
     }
   }
