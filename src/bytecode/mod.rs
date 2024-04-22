@@ -6,7 +6,7 @@ use rustc_hash::FxHashMap;
 use self::op_code::OpCode;
 use self::value::InstructionType;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Chunk {
   pub code: FxHashMap<usize, u8>,
   pub count: usize,
@@ -36,7 +36,7 @@ impl Chunk {
   }
 
   pub fn disassemble_instruction(&self, instruction: u8, offset: usize) -> usize {
-    println!("{:04} ", offset);
+    // println!("{:04} ", offset);
 
     match OpCode::lookup_byte(instruction) {
       Ok(op_code) => match op_code {
@@ -51,7 +51,7 @@ impl Chunk {
   }
 
   pub fn disassemble_chunk(&mut self, name: &str) {
-    println!("== {} ==", name);
+    // println!("== {} ==", name);
 
     let mut offset = 0;
     while let Some(&instruction) = self.get_byte(offset) {
@@ -60,7 +60,7 @@ impl Chunk {
   }
 
   pub fn simple_instruction(&self, name: &str, offset: usize) -> usize {
-    println!("{}", name);
+    // println!("{}", name);
     offset + 1
   }
 }

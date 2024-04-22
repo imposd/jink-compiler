@@ -20,36 +20,49 @@ pub struct VM {
   pub bytecode: Chunk,
   pub stack: Vec<Box<usize>>,
   // maybe use a mutable reference instead?
-  pub stack_ptr: Box<usize>,
+  pub stack_ptr: usize,
+}
+
+impl Default for VM {
+  fn default() -> Self {
+    Self { bytecode: Default::default(), stack: vec![Default::default(); STACK_SIZE], stack_ptr: Default::default() }
+  }
 }
 
 impl VM {
   pub fn new(bytecode: Chunk) -> Self {
-    Self { bytecode, stack: vec![Box::new(STACK_SIZE)], stack_ptr: Default::default() }
+    Self { bytecode, stack: vec![Default::default(); STACK_SIZE], stack_ptr: Default::default() }
   }
 
   pub fn run(&mut self) -> Result<(), VMError> {
-    let mut instruction = Box::new(0);
+    let mut instruction = 0;
 
-    while instruction < Box::new(self.bytecode.count) {
-      match OpCode::lookup_byte({ *instruction }.try_into().unwrap()) {
-        Ok(OpCode::OpConstant) => {}
+    while instruction < self.bytecode.code.len() {
+      match OpCode::lookup_byte(instruction.try_into().unwrap()) {
+        Ok(OpCode::OpConstant) => {
+          println!("Bytecode code: {:?}", self.bytecode.code.len());
+          println!("Instruction: {:?}", instruction);
+
+          let index = self.bytecode.get_byte(instruction).unwrap();
+          instruction += 2;
+          self.push_index(*index as usize)?;
+        }
         _ => return Err(VMError::NotImplementedYet),
       }
-      *instruction += 1;
+      instruction += 1;
     }
 
     Ok(())
   }
 
-  pub fn index(&mut self, stack_index: usize) -> Result<(), VMError> {
-    if self.stack_ptr >= Box::new(STACK_SIZE) {
-      return Err(VMError::StackOverflow { max_size: STACK_SIZE, depth: *self.stack_ptr });
+  pub fn push_index(&mut self, stack_index: usize) -> Result<(), VMError> {
+    if self.stack_ptr >= STACK_SIZE {
+      return Err(VMError::StackOverflow { max_size: STACK_SIZE, depth: self.stack_ptr });
     }
 
     match self.bytecode.get_byte(stack_index) {
       Some(constant) => {
-        self.stack[*self.stack_ptr] = Box::new((*constant).into());
+        self.stack[self.stack_ptr] = Box::new((*constant).into());
       }
       None => return Err(VMError::OutOfBounds { index: stack_index }),
     }
@@ -58,7 +71,7 @@ impl VM {
   }
 
   pub fn stack_top(&self) -> Option<Box<usize>> {
-    match *self.stack_ptr {
+    match self.stack_ptr {
       0 => None,
       n => Some(self.stack[n - 1].clone()),
     }
