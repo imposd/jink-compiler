@@ -6,7 +6,7 @@ pub fn main() {
 
   let mut chunk = Chunk::new();
 
-  chunk.add_byte(2);
+  chunk.add_byte(1);
 
   chunk.disassemble_chunk("test chunk");
 }

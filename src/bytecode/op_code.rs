@@ -11,6 +11,12 @@ pub enum OpCode {
   OpConstant,
 }
 
+#[derive(Debug)]
+pub enum OpCodeDefinition<'operand> {
+  OpReturn,
+  OpConstant(&'operand [usize]),
+}
+
 impl OpCode {
   pub fn from_byte(byte: u8) -> Option<OpCode> {
     match byte {
@@ -21,6 +27,19 @@ impl OpCode {
 
   pub fn lookup_byte(byte: u8) -> Result<OpCode, OpCodeError> {
     OpCode::try_from(byte)
+  }
+}
+
+impl<'operand> OpCodeDefinition<'operand> {
+  pub fn lookup(opcode: &OpCode) -> OpCodeDefinition<'operand> {
+    match opcode {
+      OpCode::OpReturn => Self::OpReturn,
+      OpCode::OpConstant => Self::OpConstant(&[2]),
+    }
+  }
+
+  pub fn lookup_byte(byte: u8) -> Result<OpCodeDefinition<'operand>, OpCodeError> {
+    Ok(Self::lookup(&OpCode::try_from(byte)?))
   }
 }
 

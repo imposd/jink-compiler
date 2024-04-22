@@ -1,4 +1,3 @@
-pub mod generator;
 pub mod op_code;
 pub mod value;
 
@@ -41,8 +40,8 @@ impl Chunk {
 
     match OpCode::lookup_byte(instruction) {
       Ok(op_code) => match op_code {
-        OpCode::OpReturn => self.simple_instruction("OP_RETURN", offset),
-        OpCode::OpConstant => self.simple_instruction("OP_CONSTANT", offset),
+        OpCode::OpReturn => self.simple_instruction("OpReturn", offset),
+        OpCode::OpConstant => self.simple_instruction("OpConstant", offset),
       },
       Err(e) => {
         eprintln!("Disassembly error: {:?}", e);
