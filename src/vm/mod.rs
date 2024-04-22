@@ -18,7 +18,7 @@ pub enum VMError {
 #[derive(Debug)]
 pub struct VM {
   pub bytecode: Chunk,
-  pub stack: Vec<Box<usize>>,
+  pub stack: Vec<usize>,
   // maybe use a mutable reference instead?
   pub stack_ptr: usize,
 }
@@ -40,15 +40,18 @@ impl VM {
     while instruction < self.bytecode.code.len() {
       match OpCode::lookup_byte(instruction.try_into().unwrap()) {
         Ok(OpCode::OpConstant) => {
-          println!("Bytecode code: {:?}", self.bytecode.code.len());
-          println!("Instruction: {:?}", instruction);
+          log::debug!("Bytecode code: {:?}", self.bytecode.code.len());
+          log::debug!("Instruction: {:?}", instruction);
 
-          let index = self.bytecode.get_byte(instruction).unwrap();
+          let bytecode = self.bytecode.get_slice((instruction + 1)..);
+          let slice_ref = &bytecode[(instruction + 1)..];
+          let index = slice_ref.as_ptr();
+
           instruction += 2;
-          self.push_index(*index as usize)?;
+          self.push_index(index as usize)?;
         }
         _ => return Err(VMError::NotImplementedYet),
-      }
+      };
       instruction += 1;
     }
 
@@ -56,13 +59,15 @@ impl VM {
   }
 
   pub fn push_index(&mut self, stack_index: usize) -> Result<(), VMError> {
+    log::debug!("stack_index: {:?}", stack_index);
+
     if self.stack_ptr >= STACK_SIZE {
       return Err(VMError::StackOverflow { max_size: STACK_SIZE, depth: self.stack_ptr });
     }
 
     match self.bytecode.get_byte(stack_index) {
       Some(constant) => {
-        self.stack[self.stack_ptr] = Box::new((*constant).into());
+        self.stack[self.stack_ptr] = *constant as usize;
       }
       None => return Err(VMError::OutOfBounds { index: stack_index }),
     }
@@ -70,10 +75,10 @@ impl VM {
     Ok(())
   }
 
-  pub fn stack_top(&self) -> Option<Box<usize>> {
+  pub fn stack_top(&self) -> Option<&usize> {
     match self.stack_ptr {
       0 => None,
-      n => Some(self.stack[n - 1].clone()),
+      n => Some(&self.stack[n - 1]),
     }
   }
 }

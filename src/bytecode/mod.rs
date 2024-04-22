@@ -1,6 +1,8 @@
 pub mod op_code;
 pub mod value;
 
+use std::ops::RangeBounds;
+
 use rustc_hash::FxHashMap;
 
 use self::op_code::OpCode;
@@ -35,8 +37,17 @@ impl Chunk {
     self.code.get(&index)
   }
 
+  pub fn get_slice<R>(&self, range: R) -> Vec<usize>
+  where
+    R: RangeBounds<usize>,
+  {
+    let keys: Vec<usize> = self.code.keys().filter(|&index| range.contains(index)).copied().collect();
+
+    keys
+  }
+
   pub fn disassemble_instruction(&self, instruction: u8, offset: usize) -> usize {
-    // println!("{:04} ", offset);
+    log::debug!("{:04} ", offset);
 
     match OpCode::lookup_byte(instruction) {
       Ok(op_code) => match op_code {
@@ -51,7 +62,7 @@ impl Chunk {
   }
 
   pub fn disassemble_chunk(&mut self, name: &str) {
-    // println!("== {} ==", name);
+    log::debug!("== {} ==", name);
 
     let mut offset = 0;
     while let Some(&instruction) = self.get_byte(offset) {
@@ -60,7 +71,7 @@ impl Chunk {
   }
 
   pub fn simple_instruction(&self, name: &str, offset: usize) -> usize {
-    // println!("{}", name);
+    log::debug!("{}", name);
     offset + 1
   }
 }
